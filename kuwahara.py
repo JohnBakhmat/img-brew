@@ -20,10 +20,12 @@ time_read_file = time.time()
 
 sector_hash_map = {}
 
+
 def process_sector(sector):
-    (width,height,bands) = sector.shape
-    if(width == 0 or height == 0): return None
-    avg_color = np.mean(sector, axis=(0,1))
+    (width, height, bands) = sector.shape
+    if width == 0 or height == 0:
+        return None
+    avg_color = np.mean(sector, axis=(0, 1))
     std = np.std(sector)
     return (avg_color, std)
 
@@ -34,17 +36,25 @@ def kuwahara(dataset, i, j):
     top = j - sector_size
     bottom = j + sector_size
 
-    if (left < 0): left = 0
-    if (right > height): right = height
-    if (top < 0): top = 0
-    if (bottom > width): bottom = width
+    if left < 0:
+        left = 0
+    if right > height:
+        right = height
+    if top < 0:
+        top = 0
+    if bottom > width:
+        bottom = width
     # check the hashmap if the sector was already calculated
 
     def check_cached(left, right, top, bottom):
         if (left, right, top, bottom) in sector_hash_map:
-            return (True,(left,right,top,bottom), sector_hash_map[(left, right, top, bottom)])
+            return (
+                True,
+                (left, right, top, bottom),
+                sector_hash_map[(left, right, top, bottom)],
+            )
         else:
-            return (False,(left,right,top,bottom), dataset[left : right, top : bottom])
+            return (False, (left, right, top, bottom), dataset[left:right, top:bottom])
 
     sector1 = check_cached(left, i, top, j)
     sector2 = check_cached(i, right, top, j)
@@ -55,7 +65,7 @@ def kuwahara(dataset, i, j):
     processed_sectors = [0, 0, 0, 0]
 
     for i in range(4):
-        if (sectors[i][0]):
+        if sectors[i][0]:
             processed_sectors[i] = sectors[i][2]
         else:
             data = process_sector(sectors[i][2])
@@ -66,8 +76,9 @@ def kuwahara(dataset, i, j):
     minStd = 5000
 
     for i in range(4):
-        if (processed_sectors[i] == None): continue
-        if (processed_sectors[i][1] <= minStd):
+        if processed_sectors[i] == None:
+            continue
+        if processed_sectors[i][1] <= minStd:
             minStd = processed_sectors[i][1]
             clr = processed_sectors[i][0]
     return clr
@@ -79,26 +90,34 @@ end = height * width
 prev_percent = 0
 for i in range(height):
     for j in range(width):
-        
         cur = height * i + j
-        percent = math.floor((cur/end * 100))
-        if (prev_percent != percent):
+        percent = math.floor((cur / end * 100))
+        if prev_percent != percent:
             prev_percent = percent
             clear_output(wait=False)
-            print(percent,"%")
-        
+            print(percent, "%")
 
         res[i, j] = kuwahara(pixels, i, j)
 
 time_end_processing = time.time()
 
 
-Image.fromarray(res).save(os.path.splitext(input_file_name)[0] + "optimized-<=-out-" + str(sector_size) +"px" + ".png")
+Image.fromarray(res).save(
+    os.path.splitext(input_file_name)[0]
+    + "optimized-<=-out-"
+    + str(sector_size)
+    + "px"
+    + ".png"
+)
 time_save = time.time()
 
 print(
-    "Time to read file: ", time_read_file - time_start,
-    "\nTime to process: ", time_end_processing - time_start_processing,
-    "\nTime to save file: ", time_save - time_end_processing,
-    "\nTotal time: ", time_save - time_start
+    "Time to read file: ",
+    time_read_file - time_start,
+    "\nTime to process: ",
+    time_end_processing - time_start_processing,
+    "\nTime to save file: ",
+    time_save - time_end_processing,
+    "\nTotal time: ",
+    time_save - time_start,
 )
