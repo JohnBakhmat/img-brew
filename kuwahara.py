@@ -8,7 +8,7 @@ from IPython.display import clear_output
 
 time_start = time.time()
 
-sector_size = 4
+sector_size = 8
 input_file_name = "./john.png"
 
 pixels = np.asarray(Image.open(input_file_name))
@@ -101,8 +101,9 @@ time_end_processing = time.time()
 
 
 Image.fromarray(res).save(
-    os.path.splitext(input_file_name)[0]
-    + "optimized-clamp-out-"
+    "./results/"
+    + os.path.splitext(input_file_name)[0]
+    + "-kuwahara-out-"
     + str(sector_size)
     + "px"
     + ".png"
