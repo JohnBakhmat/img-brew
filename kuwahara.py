@@ -29,33 +29,31 @@ def process_sector(sector):
     std = np.std(sector)
     return (avg_color, std)
 
+def clamp (val, min, max):
+    if val < min:
+        return min
+    if val > max:
+        return max
+    return val
+
+
 
 def kuwahara(dataset, i, j):
-    left = i - sector_size
-    right = i + sector_size
-    top = j - sector_size
-    bottom = j + sector_size
-
-    if left < 0:
-        left = 0
-    if right > height:
-        right = height
-    if top < 0:
-        top = 0
-    if bottom > width:
-        bottom = width
-    # check the hashmap if the sector was already calculated
-
     def check_cached(left, right, top, bottom):
-        if (left, right, top, bottom) in sector_hash_map:
-            return (
-                True,
-                (left, right, top, bottom),
-                sector_hash_map[(left, right, top, bottom)],
-            )
-        else:
-            return (False, (left, right, top, bottom), dataset[left:right, top:bottom])
-
+            if (left, right, top, bottom) in sector_hash_map:
+                return (
+                    True,
+                    (left, right, top, bottom),
+                    sector_hash_map[(left, right, top, bottom)],
+                )
+            else:
+                return (False, (left, right, top, bottom), dataset[left:right, top:bottom])
+                
+    left = clamp(i - sector_size, 0, height)
+    right = clamp(i + sector_size, 0, height)
+    top = clamp(j - sector_size, 0, width)
+    bottom = clamp(j + sector_size, 0, width)
+    
     sector1 = check_cached(left, i, top, j)
     sector2 = check_cached(i, right, top, j)
     sector3 = check_cached(i, right, j, bottom)
@@ -104,7 +102,7 @@ time_end_processing = time.time()
 
 Image.fromarray(res).save(
     os.path.splitext(input_file_name)[0]
-    + "optimized-<=-out-"
+    + "optimized-clamp-out-"
     + str(sector_size)
     + "px"
     + ".png"
